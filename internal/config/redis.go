@@ -4,17 +4,23 @@ import (
 	"context"
 	"fmt"
 	"time"
+	"url-shortener/internal/exception"
 
 	"github.com/redis/go-redis/v9"
 	"github.com/spf13/viper"
 )
 
-type RedisClient struct {
-	Client *redis.Client
-	ctx    context.Context
+type RedisClient interface {
+	CheckToken(ctx context.Context, key string) (bool, error)
+	SetToken(ctx context.Context, key string, value any, expiration time.Duration) error
+	DeleteToken(ctx context.Context, key string) error
 }
 
-func NewRedis(config *viper.Viper) *RedisClient {
+type RedisClientImpl struct {
+	Client *redis.Client
+}
+
+func NewRedis(config *viper.Viper) RedisClient {
 	addr := fmt.Sprintf("%s:%d", config.GetString("REDIS_HOST"), config.GetInt("REDIS_PORT"))
 	db := config.GetInt("REDIS_DB")
 
@@ -23,32 +29,36 @@ func NewRedis(config *viper.Viper) *RedisClient {
 		DB:   db,
 	})
 
-	return &RedisClient{
+	return &RedisClientImpl{
 		Client: rdb,
-		ctx:    context.Background(),
 	}
 }
 
-func (r *RedisClient) Get(ctx context.Context, key string) (string, error) {
-	val, err := r.Client.Get(ctx, key).Result()
+func (r *RedisClientImpl) CheckToken(ctx context.Context, key string) (bool, error) {
+	result, err := r.Client.Exists(ctx, key).Result()
 	if err != nil {
-		return "", err
+		return false, exception.ErrInternalServer
 	}
-	return val, nil
+
+	if result == 0 {
+		return false, exception.ErrUnauthorized
+	}
+
+	return true, nil
 }
 
-func (r *RedisClient) Set(ctx context.Context, key string, value any, expiration time.Duration) error {
+func (r *RedisClientImpl) SetToken(ctx context.Context, key string, value any, expiration time.Duration) error {
 	err := r.Client.Set(ctx, key, value, expiration).Err()
 	if err != nil {
-		return err
+		return exception.ErrInternalServer
 	}
 	return nil
 }
 
-func (r *RedisClient) Delete(ctx context.Context, key string) error {
+func (r *RedisClientImpl) DeleteToken(ctx context.Context, key string) error {
 	err := r.Client.Del(ctx, key).Err()
 	if err != nil {
-		return err
+		return exception.ErrInternalServer
 	}
 	return nil
 }

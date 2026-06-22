@@ -1,0 +1,7 @@
+package http
+
+import "github.com/gin-gonic/gin"
+
+type AuthController interface {
+	Register(ctx *gin.Context)
+}
