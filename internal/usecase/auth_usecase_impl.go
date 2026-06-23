@@ -96,7 +96,7 @@ func (u *AuthUsecaseImpl) Login(ctx context.Context, request *model.LoginUserReq
 		return nil, err
 	}
 
-	err = u.RedisClient.SetToken(ctx, token, user.Username, util.TokenDuration)
+	err = u.RedisClient.SetToken(ctx, token, user.ID, util.TokenDuration)
 	if err != nil {
 		u.Log.WithField("user_id", user.ID).Error("Failed to set token")
 		return nil, err
@@ -104,4 +104,17 @@ func (u *AuthUsecaseImpl) Login(ctx context.Context, request *model.LoginUserReq
 
 	u.Log.WithField("user_id", user.ID).Info("User logged in successfully")
 	return converter.ToUserTokenResponse(token), nil
+}
+
+func (u *AuthUsecaseImpl) Logout(ctx context.Context, token string) (bool, error) {
+	u.Log.WithField("token", token).Debug("Logout attempt")
+
+	err := u.RedisClient.DeleteToken(ctx, token)
+	if err != nil {
+		u.Log.WithField("token", token).Error("Failed to delete token")
+		return false, err
+	}
+
+	u.Log.WithField("token", token).Info("User logged out successfully")
+	return true, nil
 }

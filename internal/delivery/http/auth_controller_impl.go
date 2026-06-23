@@ -78,3 +78,19 @@ func (c *AuthControllerImpl) Login(ctx *gin.Context) {
 
 	util.ResponseSuccess(ctx, http.StatusOK, user)
 }
+
+func (c *AuthControllerImpl) Logout(ctx *gin.Context) {
+	token := ctx.GetString("token")
+	if token == "" {
+		util.ResponseError(ctx, http.StatusBadRequest, "token is required")
+		return
+	}
+
+	response, err := c.AuthUsecase.Logout(ctx.Request.Context(), token)
+	if err != nil {
+		util.ResponseError(ctx, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	util.ResponseSuccess(ctx, http.StatusOK, response)
+}
