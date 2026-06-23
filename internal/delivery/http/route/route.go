@@ -11,10 +11,11 @@ type RouteConfig struct {
 	App            *gin.Engine
 	AuthMiddleware *middleware.AuthMiddleware
 	AuthController http.AuthController
+	UrlController  http.UrlController
 }
 
-func NewRouteConfig(app *gin.Engine, authMiddleware *middleware.AuthMiddleware, authController http.AuthController) RouteConfig {
-	return RouteConfig{App: app, AuthMiddleware: authMiddleware, AuthController: authController}
+func NewRouteConfig(app *gin.Engine, authMiddleware *middleware.AuthMiddleware, authController http.AuthController, urlController http.UrlController) RouteConfig {
+	return RouteConfig{App: app, AuthMiddleware: authMiddleware, AuthController: authController, UrlController: urlController}
 }
 
 func (r *RouteConfig) Setup() {
@@ -26,7 +27,7 @@ func (r *RouteConfig) Setup() {
 	// Protected routes
 	protected := r.App.Group("/api/v1", r.AuthMiddleware.Authenticate())
 	protected.DELETE("/auth/logout", r.AuthController.Logout)
-	// protected.POST("/urls", r.UrlController.Create)
+	protected.POST("/urls", r.UrlController.CreateUrl)
 	// protected.GET("/urls", r.UrlController.GetAll)
 	// protected.DELETE("/urls/:short_code", r.UrlController.Delete)
 

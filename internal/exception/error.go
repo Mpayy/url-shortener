@@ -8,11 +8,12 @@ import (
 )
 
 var (
-	ErrUnauthorized          = errors.New("unauthorized")
-	ErrInternalServer        = errors.New("internal server error")
-	ErrNotFound              = errors.New("data not found")
-	ErrDuplicatedKeyEmail    = errors.New("email already exists")
-	ErrDuplicatedKeyUsername = errors.New("username already exists")
+	ErrUnauthorized           = errors.New("unauthorized")
+	ErrInternalServer         = errors.New("internal server error")
+	ErrNotFound               = errors.New("data not found")
+	ErrDuplicatedKeyEmail     = errors.New("email already exists")
+	ErrDuplicatedKeyUsername  = errors.New("username already exists")
+	ErrDuplicatedKeyShortCode = errors.New("short code already exists")
 )
 
 func ExtractValidationErrors(err error) map[string]string {

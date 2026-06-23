@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"strings"
 	"url-shortener/internal/config"
+	"url-shortener/internal/model"
 	"url-shortener/internal/util"
 
 	"github.com/gin-gonic/gin"
@@ -42,7 +43,15 @@ func (m *AuthMiddleware) Authenticate() gin.HandlerFunc {
 
 		ctx.Set("auth", auth)
 		ctx.Set("token", tokenString)
-		
+
 		ctx.Next()
 	}
+}
+
+func GetAuthFromCtx(ctx *gin.Context) (*model.Auth, bool) {
+	auth, exists := ctx.Get("auth")
+	if !exists {
+		return nil, false
+	}
+	return auth.(*model.Auth), true
 }
