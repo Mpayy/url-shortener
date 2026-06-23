@@ -20,4 +20,5 @@ func NewRouteConfig(app *gin.Engine, authMiddleware *middleware.AuthMiddleware, 
 func (r *RouteConfig) Setup() {
 	auth := r.App.Group("/api/v1/auth")
 	auth.POST("/register", r.AuthController.Register)
+	auth.POST("/login", r.AuthController.Login)
 }

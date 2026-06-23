@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"fmt"
-	"log"
 	"net/http"
 	"os"
 	"os/signal"
@@ -22,15 +21,15 @@ func main() {
 	port := app.Config.GetInt("APP_PORT")
 	addr := fmt.Sprintf("%s:%d", host, port)
 
-	srv := &http.Server{
+	server := &http.Server{
 		Addr:    addr,
 		Handler: app.Gin,
 	}
 
 	go func() {
-		log.Printf("Server starting on: %s\n", addr)
-		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			log.Fatalf("Failed to start server: %v", err)
+		app.Log.Infof("Server starting on: %s", addr)
+		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			app.Log.Fatalf("Failed to start server: %v", err)
 		}
 	}()
 
@@ -38,22 +37,22 @@ func main() {
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 	<-quit
 
-	log.Println("Shutting down server...")
+	app.Log.Infof("Shutting down server...")
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	if err := srv.Shutdown(ctx); err != nil {
-		log.Fatalf("Server forced to shutdown: %v", err)
+	if err := server.Shutdown(ctx); err != nil {
+		app.Log.Fatalf("Server forced to shutdown: %v", err)
 	}
-	log.Println("Server exited properly")
+	app.Log.Infof("Server exited properly")
 
-	db, err := app.Database.DB()
+	db, err := app.DB.DB()
 	if err != nil {
-		log.Fatalf("Failed to get database connection: %v", err)
+		app.Log.Fatalf("Failed to get database connection: %v", err)
 	}
 	if err := db.Close(); err != nil {
-		log.Fatalf("Failed to close database connection: %v", err)
+		app.Log.Fatalf("Failed to close database connection: %v", err)
 	}
-	log.Println("Database connection closed")
+	app.Log.Infof("Database connection closed")
 }

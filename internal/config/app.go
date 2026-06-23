@@ -8,19 +8,18 @@ import (
 )
 
 type App struct {
-	Gin      *gin.Engine
-	Logger   *logrus.Logger
-	Config   *viper.Viper
-	Database *gorm.DB
-	
+	Gin    *gin.Engine
+	Log    *logrus.Logger
+	Config *viper.Viper
+	DB     *gorm.DB
 }
 
-func NewApp(gin *gin.Engine, logger *logrus.Logger, viper *viper.Viper, db *gorm.DB) *App {
+func NewApp(gin *gin.Engine, log *logrus.Logger, config *viper.Viper, db *gorm.DB) *App {
 	app := &App{
-		Gin:      gin,
-		Logger:   logger,
-		Config:   viper,
-		Database: db,
+		Gin:    gin,
+		Log:    log,
+		Config: config,
+		DB:     db,
 	}
 
 	return app

@@ -30,9 +30,9 @@ func InitializedApp() *Application {
 	authMiddleware := middleware.NewAuthMiddleware(tokenUtil, redisClient)
 	userRepository := repository.NewUserRepository(db)
 	transaction := util.NewTransaction(db)
-	authUsecase := usecase.NewAuthUsecase(userRepository, transaction)
+	authUsecase := usecase.NewAuthUsecase(userRepository, transaction, tokenUtil, redisClient, logger)
 	validate := config.NewValidator()
-	authController := http.NewAuthController(authUsecase, validate)
+	authController := http.NewAuthController(authUsecase, validate, logger)
 	routeConfig := route.NewRouteConfig(engine, authMiddleware, authController)
 	application := NewApplication(app, routeConfig)
 	return application

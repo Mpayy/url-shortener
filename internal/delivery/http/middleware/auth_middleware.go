@@ -30,7 +30,7 @@ func (m *AuthMiddleware) Authenticate() gin.HandlerFunc {
 
 		exists, err := m.RedisClient.CheckToken(ctx.Request.Context(), tokenString)
 		if err != nil || !exists {
-			util.ResponseError(ctx, http.StatusUnauthorized, err.Error())
+			util.ResponseError(ctx, http.StatusUnauthorized, "unauthorized")
 			return
 		}
 

@@ -9,7 +9,7 @@ import (
 	"github.com/spf13/viper"
 )
 
-const tokenDuration = 24 * time.Hour * 30
+const TokenDuration = 24 * time.Hour * 30
 
 type TokenUtil interface {
 	CreateToken(auth *model.Auth) (string, error)
@@ -32,12 +32,12 @@ func (t *TokenUtilImpl) CreateToken(auth *model.Auth) (string, error) {
 		"id":       auth.ID,
 		"username": auth.Username,
 		"email":    auth.Email,
-		"exp":      time.Now().Add(tokenDuration).Unix(),
+		"exp":      time.Now().Add(TokenDuration).Unix(),
 	})
 
 	jwtToken, err := token.SignedString([]byte(t.SecretKey))
 	if err != nil {
-		return "", err
+		return "", exception.ErrInternalServer
 	}
 
 	return jwtToken, nil
