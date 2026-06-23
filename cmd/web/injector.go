@@ -21,6 +21,12 @@ var userSet = wire.NewSet(
 	http.NewAuthController,
 )
 
+var urlSet = wire.NewSet(
+	repository.NewUrlRepository,
+	usecase.NewUrlUsecase,
+	http.NewUrlController,
+)
+
 var middlewareSet = wire.NewSet(
 	middleware.NewAuthMiddleware,
 )
@@ -38,6 +44,7 @@ func InitializedApp() *Application {
 		config.NewRedis,
 		config.NewGin,
 		userSet,
+		urlSet,
 		middlewareSet,
 		routeSet,
 		util.NewTransaction,

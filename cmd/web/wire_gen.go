@@ -33,7 +33,10 @@ func InitializedApp() *Application {
 	authUsecase := usecase.NewAuthUsecase(userRepository, transaction, tokenUtil, redisClient, logger)
 	validate := config.NewValidator()
 	authController := http.NewAuthController(authUsecase, validate, logger)
-	routeConfig := route.NewRouteConfig(engine, authMiddleware, authController)
+	urlRepository := repository.NewUrlRepository(db)
+	urlUsecase := usecase.NewUrlUsecase(urlRepository, transaction, logger, redisClient)
+	urlController := http.NewUrlController(urlUsecase, validate, logger)
+	routeConfig := route.NewRouteConfig(engine, authMiddleware, authController, urlController)
 	application := NewApplication(app, routeConfig)
 	return application
 }
@@ -41,6 +44,8 @@ func InitializedApp() *Application {
 // injector.go:
 
 var userSet = wire.NewSet(repository.NewUserRepository, usecase.NewAuthUsecase, http.NewAuthController)
+
+var urlSet = wire.NewSet(repository.NewUrlRepository, usecase.NewUrlUsecase, http.NewUrlController)
 
 var middlewareSet = wire.NewSet(middleware.NewAuthMiddleware)
 

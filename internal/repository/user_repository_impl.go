@@ -42,6 +42,7 @@ func (r *UserRepositoryImpl) Create(ctx context.Context, user *entity.User) erro
 		}
 		return exception.ErrInternalServer
 	}
+
 	return nil
 }
 
@@ -54,5 +55,6 @@ func (r *UserRepositoryImpl) FindByEmail(ctx context.Context, email string) (*en
 		}
 		return nil, exception.ErrInternalServer
 	}
+
 	return &user, nil
 }
