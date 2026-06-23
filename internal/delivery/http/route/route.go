@@ -18,7 +18,18 @@ func NewRouteConfig(app *gin.Engine, authMiddleware *middleware.AuthMiddleware, 
 }
 
 func (r *RouteConfig) Setup() {
-	auth := r.App.Group("/api/v1/auth")
-	auth.POST("/register", r.AuthController.Register)
-	auth.POST("/login", r.AuthController.Login)
+	// Public routes
+	public := r.App.Group("/api/v1")
+	public.POST("/auth/register", r.AuthController.Register)
+	public.POST("/auth/login", r.AuthController.Login)
+
+	// Protected routes
+	protected := r.App.Group("/api/v1", r.AuthMiddleware.Authenticate())
+	protected.DELETE("/auth/logout", r.AuthController.Logout)
+	// protected.POST("/urls", r.UrlController.Create)
+	// protected.GET("/urls", r.UrlController.GetAll)
+	// protected.DELETE("/urls/:short_code", r.UrlController.Delete)
+
+	// Public redirect
+	// r.App.GET("/:short_code", r.UrlController.Redirect)
 }

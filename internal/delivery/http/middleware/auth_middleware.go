@@ -41,6 +41,8 @@ func (m *AuthMiddleware) Authenticate() gin.HandlerFunc {
 		}
 
 		ctx.Set("auth", auth)
+		ctx.Set("token", tokenString)
+		
 		ctx.Next()
 	}
 }
