@@ -4,7 +4,10 @@ type UserResponse struct {
 	ID       int64  `json:"id,omitempty"`
 	Username string `json:"username,omitempty"`
 	Email    string `json:"email,omitempty"`
-	Token    string `json:"token,omitempty"`
+}
+
+type TokenResponse struct {
+	Token string `json:"token,omitempty"`
 }
 
 type RegisterUserRequest struct {

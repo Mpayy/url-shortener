@@ -76,7 +76,11 @@ func (c *AuthControllerImpl) Login(ctx *gin.Context) {
 		return
 	}
 
-	util.ResponseSuccess(ctx, http.StatusOK, user)
+	tokenResponse := model.TokenResponse{
+		Token: user.Token,
+	}
+
+	util.ResponseSuccess(ctx, http.StatusOK, tokenResponse)
 }
 
 func (c *AuthControllerImpl) Logout(ctx *gin.Context) {
