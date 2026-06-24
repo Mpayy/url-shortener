@@ -23,9 +23,9 @@ func NewUserRepository(db *gorm.DB) UserRepository {
 
 func (r *UserRepositoryImpl) GetTx(ctx context.Context) *gorm.DB {
 	if tx, ok := util.GetTxFromContext(ctx); ok {
-		return tx
+		return tx.WithContext(ctx)
 	}
-	return r.DB
+	return r.DB.WithContext(ctx)
 }
 
 func (r *UserRepositoryImpl) Create(ctx context.Context, user *entity.User) error {
@@ -49,7 +49,7 @@ func (r *UserRepositoryImpl) Create(ctx context.Context, user *entity.User) erro
 
 func (r *UserRepositoryImpl) FindByEmail(ctx context.Context, email string) (*entity.User, error) {
 	var user entity.User
-	err := r.DB.WithContext(ctx).Where("email = ?", email).First(&user).Error
+	err := r.GetTx(ctx).Where("email = ?", email).First(&user).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, exception.ErrNotFound

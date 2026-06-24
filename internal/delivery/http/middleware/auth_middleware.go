@@ -53,5 +53,6 @@ func GetAuthFromCtx(ctx *gin.Context) (*model.Auth, bool) {
 	if !exists {
 		return nil, false
 	}
-	return auth.(*model.Auth), true
+	a, ok := auth.(*model.Auth)
+	return a, ok
 }

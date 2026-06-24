@@ -64,7 +64,7 @@ func (c *AuthControllerImpl) Login(ctx *gin.Context) {
 		return
 	}
 
-	user, err := c.AuthUsecase.Login(ctx.Request.Context(), &request)
+	tokenResponse, err := c.AuthUsecase.Login(ctx.Request.Context(), &request)
 	if err != nil {
 		if errors.Is(err, exception.ErrUnauthorized) {
 			util.ResponseError(ctx, http.StatusUnauthorized, err.Error())
@@ -74,10 +74,6 @@ func (c *AuthControllerImpl) Login(ctx *gin.Context) {
 		c.Log.WithError(err).Error("Unexpected error during login")
 		util.ResponseError(ctx, http.StatusInternalServerError, "internal server error")
 		return
-	}
-
-	tokenResponse := model.TokenResponse{
-		Token: user.Token,
 	}
 
 	util.ResponseSuccess(ctx, http.StatusOK, tokenResponse)
