@@ -47,3 +47,15 @@ func (r *UrlRepositoryImpl) FindByUserID(ctx context.Context, userID int64) ([]e
 
 	return urls, nil
 }
+
+func (r *UrlRepositoryImpl) Delete(ctx context.Context, shortCode string, userID int64) error {
+	result := r.GetTx(ctx).Where("short_code = ? AND user_id = ?", shortCode, userID).Delete(&entity.Url{})
+	if result.Error != nil {
+		return result.Error
+	}
+	if result.RowsAffected == 0 {
+		return exception.ErrNotFound
+	}
+
+	return nil
+}
