@@ -88,7 +88,7 @@ func (c *AuthControllerImpl) Logout(ctx *gin.Context) {
 
 	response, err := c.AuthUsecase.Logout(ctx.Request.Context(), token)
 	if err != nil {
-		util.ResponseError(ctx, http.StatusInternalServerError, err.Error())
+		util.ResponseError(ctx, http.StatusInternalServerError, "internal server error")
 		return
 	}
 
