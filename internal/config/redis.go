@@ -45,11 +45,7 @@ func (r *RedisClientImpl) Check(ctx context.Context, key string) (bool, error) {
 		return false, exception.ErrInternalServer
 	}
 
-	if result == 0 {
-		return false, exception.ErrUnauthorized
-	}
-
-	return true, nil
+	return result > 0, nil
 }
 
 func (r *RedisClientImpl) Set(ctx context.Context, key string, value any, expiration time.Duration) error {

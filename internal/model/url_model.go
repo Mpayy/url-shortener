@@ -4,7 +4,7 @@ type UrlResponse struct {
 	ID          int64  `json:"id,omitempty"`
 	ShortCode   string `json:"short_code,omitempty"`
 	OriginalUrl string `json:"original_url,omitempty"`
-	Hits        int64  `json:"hits,omitempty"`
+	Hits        int64  `json:"hits"`
 }
 
 type UrlCreateRequest struct {

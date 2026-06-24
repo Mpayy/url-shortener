@@ -21,10 +21,10 @@ func NewUrlRepository(db *gorm.DB) UrlRepository {
 
 func (r *UrlRepositoryImpl) GetTx(ctx context.Context) *gorm.DB {
 	if tx, ok := util.GetTxFromContext(ctx); ok {
-		return tx
+		return tx.WithContext(ctx)
 	}
 
-	return r.DB
+	return r.DB.WithContext(ctx)
 }
 
 func (r *UrlRepositoryImpl) Create(ctx context.Context, url *entity.Url) error {
