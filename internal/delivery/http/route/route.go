@@ -28,7 +28,7 @@ func (r *RouteConfig) Setup() {
 	protected := r.App.Group("/api/v1", r.AuthMiddleware.Authenticate())
 	protected.DELETE("/auth/logout", r.AuthController.Logout)
 	protected.POST("/urls", r.UrlController.CreateUrl)
-	// protected.GET("/urls", r.UrlController.GetAll)
+	protected.GET("/urls", r.UrlController.GetAll)
 	// protected.DELETE("/urls/:short_code", r.UrlController.Delete)
 
 	// Public redirect

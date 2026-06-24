@@ -40,7 +40,7 @@ func (r *UserRepositoryImpl) Create(ctx context.Context, user *entity.User) erro
 				return exception.ErrDuplicatedKeyEmail
 			}
 		}
-		return exception.ErrInternalServer
+		return err
 	}
 
 	return nil
@@ -53,7 +53,7 @@ func (r *UserRepositoryImpl) FindByEmail(ctx context.Context, email string) (*en
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, exception.ErrNotFound
 		}
-		return nil, exception.ErrInternalServer
+		return nil, err
 	}
 
 	return &user, nil

@@ -1,6 +1,7 @@
 package http
 
 import (
+	"errors"
 	"net/http"
 	"url-shortener/internal/delivery/http/middleware"
 	"url-shortener/internal/exception"
@@ -43,9 +44,29 @@ func (c *UrlControllerImpl) CreateUrl(ctx *gin.Context) {
 
 	url, err := c.UrlUsecase.CreateUrl(ctx.Request.Context(), &request, auth.ID)
 	if err != nil {
-		util.ResponseError(ctx, http.StatusInternalServerError, err.Error())
+		if errors.Is(err, exception.ErrDuplicatedKeyShortCode) {
+			util.ResponseError(ctx, http.StatusConflict, "internal server error")
+			return
+		}
+		util.ResponseError(ctx, http.StatusInternalServerError, "internal server error")
 		return
 	}
 
 	util.ResponseSuccess(ctx, http.StatusCreated, url)
+}
+
+func (c *UrlControllerImpl) GetAll(ctx *gin.Context) {
+	auth, exists := middleware.GetAuthFromCtx(ctx)
+	if !exists {
+		util.ResponseError(ctx, http.StatusUnauthorized, "unauthorized")
+		return
+	}
+
+	urls, err := c.UrlUsecase.GetUserUrls(ctx.Request.Context(), auth.ID)
+	if err != nil {
+		util.ResponseError(ctx, http.StatusInternalServerError, "internal server error")
+		return
+	}
+
+	util.ResponseSuccess(ctx, http.StatusOK, urls)
 }

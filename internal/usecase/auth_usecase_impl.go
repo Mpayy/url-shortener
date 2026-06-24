@@ -74,8 +74,12 @@ func (u *AuthUsecaseImpl) Login(ctx context.Context, request *model.LoginUserReq
 
 	user, err := u.UserRepository.FindByEmail(ctx, request.Email)
 	if err != nil {
-		u.Log.WithField("email", request.Email).Warn("Login failed: user not found")
-		return nil, exception.ErrUnauthorized
+		if errors.Is(err, exception.ErrNotFound) {
+			u.Log.WithField("email", request.Email).Warn("Login failed: user not found")
+			return nil, exception.ErrUnauthorized
+		}
+		u.Log.WithError(err).Error("Failed to find user")
+		return nil, err
 	}
 
 	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(request.Password))
