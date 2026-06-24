@@ -70,3 +70,29 @@ func (c *UrlControllerImpl) GetAll(ctx *gin.Context) {
 
 	util.ResponseSuccess(ctx, http.StatusOK, urls)
 }
+
+func (c *UrlControllerImpl) DeleteUrl(ctx *gin.Context) {
+	auth, exists := middleware.GetAuthFromCtx(ctx)
+	if !exists {
+		util.ResponseError(ctx, http.StatusUnauthorized, "unauthorized")
+		return
+	}
+
+	shortCode := ctx.Param("short_code")
+	if shortCode == "" {
+		util.ResponseError(ctx, http.StatusBadRequest, "short code is required")
+		return
+	}
+
+	response, err := c.UrlUsecase.DeleteUrl(ctx.Request.Context(), shortCode, auth.ID)
+	if err != nil {
+		if errors.Is(err, exception.ErrNotFound) {
+			util.ResponseError(ctx, http.StatusNotFound, err.Error())
+			return
+		}
+		util.ResponseError(ctx, http.StatusInternalServerError, "internal server error")
+		return
+	}
+
+	util.ResponseSuccess(ctx, http.StatusOK, response)
+}

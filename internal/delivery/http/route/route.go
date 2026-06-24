@@ -29,7 +29,7 @@ func (r *RouteConfig) Setup() {
 	protected.DELETE("/auth/logout", r.AuthController.Logout)
 	protected.POST("/urls", r.UrlController.CreateUrl)
 	protected.GET("/urls", r.UrlController.GetAll)
-	// protected.DELETE("/urls/:short_code", r.UrlController.Delete)
+	protected.DELETE("/urls/:short_code", r.UrlController.DeleteUrl)
 
 	// Public redirect
 	// r.App.GET("/:short_code", r.UrlController.Redirect)

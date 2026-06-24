@@ -63,7 +63,7 @@ func (u *UrlUsecaseImpl) CreateUrl(ctx context.Context, request *model.UrlCreate
 		u.Log.Warn("ShortCode collision, retrying... attempt: ", attempt+1)
 	}
 
-	u.Log.WithField("user_id", userId).WithError(lastErr).Error("Failed to create URL")	
+	u.Log.WithField("user_id", userId).WithError(lastErr).Error("Failed to create URL")
 	return nil, lastErr
 
 }
@@ -79,4 +79,29 @@ func (u *UrlUsecaseImpl) GetUserUrls(ctx context.Context, userId int64) ([]model
 
 	u.Log.WithField("user_id", userId).Info("User URLs retrieved successfully")
 	return converter.ToUrlResponses(urls), nil
+}
+
+func (u *UrlUsecaseImpl) DeleteUrl(ctx context.Context, shortCode string, userId int64) (bool, error) {
+	u.Log.WithFields(logrus.Fields{"short_code": shortCode, "user_id": userId}).Debug("Deleting URL")
+
+	err := u.Transaction.WithTransaction(ctx, func(tx context.Context) error {
+		return u.UrlRepository.Delete(tx, shortCode, userId)
+	})
+
+	if err != nil {
+		if errors.Is(err, exception.ErrNotFound) {
+			u.Log.WithFields(logrus.Fields{"short_code": shortCode, "user_id": userId}).WithError(err).Warn("URL not found")
+			return false, err
+		}
+		u.Log.WithFields(logrus.Fields{"short_code": shortCode, "user_id": userId}).WithError(err).Error("Failed to delete URL")
+		return false, err
+	}
+
+	err = u.RedisClient.Delete(ctx, config.UrlCachePrefix+shortCode)
+	if err != nil {
+		u.Log.WithFields(logrus.Fields{"short_code": shortCode, "user_id": userId}).Warn("Failed to delete URL from Redis")
+	}
+
+	u.Log.WithFields(logrus.Fields{"short_code": shortCode, "user_id": userId}).Info("URL deleted successfully")
+	return true, nil
 }

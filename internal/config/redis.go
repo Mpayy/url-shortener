@@ -10,10 +10,13 @@ import (
 	"github.com/spf13/viper"
 )
 
+const UrlCachePrefix = "url:"
+const AuthPrefix = "auth:session:"
+
 type RedisClient interface {
-	CheckToken(ctx context.Context, key string) (bool, error)
-	SetToken(ctx context.Context, key string, value any, expiration time.Duration) error
-	DeleteToken(ctx context.Context, key string) error
+	Check(ctx context.Context, key string) (bool, error)
+	Set(ctx context.Context, key string, value any, expiration time.Duration) error
+	Delete(ctx context.Context, key string) error
 }
 
 type RedisClientImpl struct {
@@ -34,7 +37,7 @@ func NewRedis(config *viper.Viper) RedisClient {
 	}
 }
 
-func (r *RedisClientImpl) CheckToken(ctx context.Context, key string) (bool, error) {
+func (r *RedisClientImpl) Check(ctx context.Context, key string) (bool, error) {
 	result, err := r.Client.Exists(ctx, key).Result()
 	if err != nil {
 		return false, exception.ErrInternalServer
@@ -47,7 +50,7 @@ func (r *RedisClientImpl) CheckToken(ctx context.Context, key string) (bool, err
 	return true, nil
 }
 
-func (r *RedisClientImpl) SetToken(ctx context.Context, key string, value any, expiration time.Duration) error {
+func (r *RedisClientImpl) Set(ctx context.Context, key string, value any, expiration time.Duration) error {
 	err := r.Client.Set(ctx, key, value, expiration).Err()
 	if err != nil {
 		return exception.ErrInternalServer
@@ -55,7 +58,7 @@ func (r *RedisClientImpl) SetToken(ctx context.Context, key string, value any, e
 	return nil
 }
 
-func (r *RedisClientImpl) DeleteToken(ctx context.Context, key string) error {
+func (r *RedisClientImpl) Delete(ctx context.Context, key string) error {
 	err := r.Client.Del(ctx, key).Err()
 	if err != nil {
 		return exception.ErrInternalServer
