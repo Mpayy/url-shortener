@@ -3,6 +3,7 @@ package usecase
 import (
 	"context"
 	"errors"
+	"time"
 	"url-shortener/internal/config"
 	"url-shortener/internal/entity"
 	"url-shortener/internal/exception"
@@ -64,7 +65,7 @@ func (u *UrlUsecaseImpl) CreateUrl(ctx context.Context, request *model.UrlCreate
 	}
 
 	u.Log.WithField("user_id", userId).WithError(lastErr).Error("Failed to create URL")
-	return nil, lastErr
+	return nil, exception.ErrInternalServer
 
 }
 
@@ -74,7 +75,7 @@ func (u *UrlUsecaseImpl) GetUserUrls(ctx context.Context, userId int64) ([]model
 	urls, err := u.UrlRepository.FindByUserID(ctx, userId)
 	if err != nil {
 		u.Log.WithError(err).Error("Failed to get user URLs")
-		return nil, err
+		return nil, exception.ErrInternalServer
 	}
 
 	u.Log.WithField("user_id", userId).Info("User URLs retrieved successfully")
@@ -94,7 +95,7 @@ func (u *UrlUsecaseImpl) DeleteUrl(ctx context.Context, shortCode string, userId
 			return false, err
 		}
 		u.Log.WithFields(logrus.Fields{"short_code": shortCode, "user_id": userId}).WithError(err).Error("Failed to delete URL")
-		return false, err
+		return false, exception.ErrInternalServer
 	}
 
 	err = u.RedisClient.Delete(ctx, config.UrlCachePrefix+shortCode)
@@ -104,4 +105,48 @@ func (u *UrlUsecaseImpl) DeleteUrl(ctx context.Context, shortCode string, userId
 
 	u.Log.WithFields(logrus.Fields{"short_code": shortCode, "user_id": userId}).Info("URL deleted successfully")
 	return true, nil
+}
+
+func (u *UrlUsecaseImpl) asyncIncrementHits(shortCode string) {
+	go func() {
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+
+		err := u.UrlRepository.IncrementHits(ctx, shortCode)
+		if err != nil {
+			u.Log.WithField("short_code", shortCode).WithError(err).Warn("Failed to increment hits")
+		}
+	}()
+}
+
+func (u *UrlUsecaseImpl) Redirect(ctx context.Context, shortCode string) (string, error) {
+	u.Log.WithField("short_code", shortCode).Debug("Redirecting URL")
+
+	originalUrl, err := u.RedisClient.Get(ctx, config.UrlCachePrefix+shortCode)
+	if err == nil {
+		u.Log.WithField("short_code", shortCode).Info("URL found in cache")
+		u.asyncIncrementHits(shortCode)
+		return originalUrl, nil
+	}
+
+	u.Log.WithField("short_code", shortCode).Debug("Cache miss")
+	url, err := u.UrlRepository.FindByShortCode(ctx, shortCode)
+	if err != nil {
+		if errors.Is(err, exception.ErrNotFound) {
+			u.Log.WithField("short_code", shortCode).WithError(err).Warn("URL not found")
+			return "", err
+		}
+		u.Log.WithField("short_code", shortCode).WithError(err).Error("Failed to find URL")
+		return "", exception.ErrInternalServer
+	}
+
+	err = u.RedisClient.Set(ctx, config.UrlCachePrefix+shortCode, url.OriginalUrl, 24*time.Hour)
+	if err != nil {
+		u.Log.WithField("short_code", shortCode).WithError(err).Warn("Failed to set URL in cache")
+	}
+
+	u.asyncIncrementHits(shortCode)
+
+	u.Log.WithField("short_code", shortCode).Info("URL redirected successfully")
+	return url.OriginalUrl, nil
 }

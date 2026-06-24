@@ -62,7 +62,7 @@ func (u *AuthUsecaseImpl) Register(ctx context.Context, request *model.RegisterU
 			return nil, err
 		}
 		u.Log.WithError(err).Error("Failed to create user")
-		return nil, err
+		return nil, exception.ErrInternalServer
 	}
 
 	u.Log.WithField("user_id", user.ID).Info("User registered successfully")
@@ -79,7 +79,7 @@ func (u *AuthUsecaseImpl) Login(ctx context.Context, request *model.LoginUserReq
 			return nil, exception.ErrUnauthorized
 		}
 		u.Log.WithError(err).Error("Failed to find user")
-		return nil, err
+		return nil, exception.ErrInternalServer
 	}
 
 	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(request.Password))
