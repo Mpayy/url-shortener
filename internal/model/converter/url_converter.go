@@ -10,6 +10,7 @@ func ToUrlResponse(url *entity.Url) *model.UrlResponse {
 		ID:          url.ID,
 		ShortCode:   url.ShortCode,
 		OriginalUrl: url.OriginalUrl,
+		Hits:        url.Hits,
 	}
 }
 

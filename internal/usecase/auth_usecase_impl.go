@@ -69,7 +69,7 @@ func (u *AuthUsecaseImpl) Register(ctx context.Context, request *model.RegisterU
 	return converter.ToUserResponse(user), nil
 }
 
-func (u *AuthUsecaseImpl) Login(ctx context.Context, request *model.LoginUserRequest) (*model.UserResponse, error) {
+func (u *AuthUsecaseImpl) Login(ctx context.Context, request *model.LoginUserRequest) (*model.TokenResponse, error) {
 	u.Log.WithField("email", request.Email).Debug("Login attempt")
 
 	user, err := u.UserRepository.FindByEmail(ctx, request.Email)
@@ -107,7 +107,7 @@ func (u *AuthUsecaseImpl) Login(ctx context.Context, request *model.LoginUserReq
 	}
 
 	u.Log.WithField("user_id", user.ID).Info("User logged in successfully")
-	return converter.ToUserTokenResponse(token), nil
+	return converter.ToTokenResponse(token), nil
 }
 
 func (u *AuthUsecaseImpl) Logout(ctx context.Context, token string) (bool, error) {

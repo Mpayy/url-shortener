@@ -1,12 +1,13 @@
 package util
 
 import (
-	"github.com/gin-gonic/gin"
 	"url-shortener/internal/model"
+
+	"github.com/gin-gonic/gin"
 )
 
 func ResponseError(ctx *gin.Context, code int, message any) {
-	ctx.AbortWithStatusJSON(code, model.WebResponse[any]{
+	ctx.AbortWithStatusJSON(code, model.ErrorResponse{
 		Error: message,
 	})
 }
