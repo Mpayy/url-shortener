@@ -32,5 +32,5 @@ func (r *RouteConfig) Setup() {
 	protected.DELETE("/urls/:short_code", r.UrlController.DeleteUrl)
 
 	// Public redirect
-	// r.App.GET("/:short_code", r.UrlController.Redirect)
+	r.App.GET("/:short_code", r.UrlController.Redirect)
 }

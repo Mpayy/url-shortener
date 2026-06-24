@@ -2,6 +2,7 @@ package config
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 	"url-shortener/internal/exception"
@@ -17,6 +18,7 @@ type RedisClient interface {
 	Check(ctx context.Context, key string) (bool, error)
 	Set(ctx context.Context, key string, value any, expiration time.Duration) error
 	Delete(ctx context.Context, key string) error
+	Get(ctx context.Context, key string) (string, error)
 }
 
 type RedisClientImpl struct {
@@ -64,4 +66,16 @@ func (r *RedisClientImpl) Delete(ctx context.Context, key string) error {
 		return exception.ErrInternalServer
 	}
 	return nil
+}
+
+func (r *RedisClientImpl) Get(ctx context.Context, key string) (string, error) {
+	value, err := r.Client.Get(ctx, key).Result()
+	if err != nil {
+		if errors.Is(err, redis.Nil) {
+			return "", exception.ErrNotFound
+		}
+		return "", exception.ErrInternalServer
+	}
+
+	return value, nil
 }

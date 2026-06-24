@@ -44,10 +44,7 @@ func (c *UrlControllerImpl) CreateUrl(ctx *gin.Context) {
 
 	url, err := c.UrlUsecase.CreateUrl(ctx.Request.Context(), &request, auth.ID)
 	if err != nil {
-		if errors.Is(err, exception.ErrDuplicatedKeyShortCode) {
-			util.ResponseError(ctx, http.StatusConflict, "internal server error")
-			return
-		}
+		c.Log.WithError(err).Error("Unexpected error during create URL")
 		util.ResponseError(ctx, http.StatusInternalServerError, "internal server error")
 		return
 	}
@@ -64,6 +61,7 @@ func (c *UrlControllerImpl) GetAll(ctx *gin.Context) {
 
 	urls, err := c.UrlUsecase.GetUserUrls(ctx.Request.Context(), auth.ID)
 	if err != nil {
+		c.Log.WithError(err).Error("Unexpected error during get user URLs")
 		util.ResponseError(ctx, http.StatusInternalServerError, "internal server error")
 		return
 	}
@@ -90,9 +88,31 @@ func (c *UrlControllerImpl) DeleteUrl(ctx *gin.Context) {
 			util.ResponseError(ctx, http.StatusNotFound, err.Error())
 			return
 		}
+		c.Log.WithError(err).Error("Unexpected error during delete URL")
 		util.ResponseError(ctx, http.StatusInternalServerError, "internal server error")
 		return
 	}
 
 	util.ResponseSuccess(ctx, http.StatusOK, response)
+}
+
+func (c *UrlControllerImpl) Redirect(ctx *gin.Context) {
+	shortCode := ctx.Param("short_code")
+	if shortCode == "" {
+		util.ResponseError(ctx, http.StatusBadRequest, "short code is required")
+		return
+	}
+
+	originalUrl, err := c.UrlUsecase.Redirect(ctx.Request.Context(), shortCode)
+	if err != nil {
+		if errors.Is(err, exception.ErrNotFound) {
+			util.ResponseError(ctx, http.StatusNotFound, err.Error())
+			return
+		}
+		c.Log.WithError(err).Error("Unexpected error during redirect")
+		util.ResponseError(ctx, http.StatusInternalServerError, "internal server error")
+		return
+	}
+
+	ctx.Redirect(http.StatusFound, originalUrl)
 }

@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"errors"
+	"fmt"
 	"strings"
 	"url-shortener/internal/entity"
 	"url-shortener/internal/exception"
@@ -40,7 +41,7 @@ func (r *UserRepositoryImpl) Create(ctx context.Context, user *entity.User) erro
 				return exception.ErrDuplicatedKeyEmail
 			}
 		}
-		return err
+		return fmt.Errorf("Create: %w", exception.ErrInternalServer)
 	}
 
 	return nil
@@ -53,7 +54,7 @@ func (r *UserRepositoryImpl) FindByEmail(ctx context.Context, email string) (*en
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, exception.ErrNotFound
 		}
-		return nil, err
+		return nil, fmt.Errorf("FindByEmail: %w", exception.ErrInternalServer)
 	}
 
 	return &user, nil
